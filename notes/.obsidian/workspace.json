@@ -13,12 +13,28 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Welcome.md",
+                "file": "Bevy Games Jam notes.md",
                 "mode": "source",
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
-              "title": "Welcome"
+              "title": "Bevy Games Jam notes"
+            }
+          }
+        ]
+      },
+      {
+        "id": "02504721b32f8436",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "24eaa63bff9ca59b",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           },
           {
@@ -37,22 +53,6 @@
           }
         ],
         "currentTab": 1
-      },
-      {
-        "id": "02504721b32f8436",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "24eaa63bff9ca59b",
-            "type": "leaf",
-            "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
-            }
-          }
-        ]
       }
     ],
     "direction": "vertical"
@@ -216,10 +216,18 @@
       "bases:Create new base": false
     }
   },
-  "active": "24eaa63bff9ca59b",
+  "active": "a6dba383366d8548",
   "lastOpenFiles": [
+    "Pasted image 20261101132423.png",
+    "Pasted image 20261101131454.png",
+    "Pasted image 20261101131245.png",
+    "Pasted image 20261101131114.png",
+    "Pasted image 20261101130446.png",
     "Bevy Games Jam notes.md",
     "Pasted image 20261101113117.png",
-    "Welcome.md"
+    "Pasted image 20261101114852.png",
+    "Welcome to Ze Gaem Jely Jam.md",
+    "create a link.md",
+    "Pasted image 20261101114859.png"
   ]
 }
