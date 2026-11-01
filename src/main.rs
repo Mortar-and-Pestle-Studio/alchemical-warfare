@@ -1,5 +1,6 @@
 mod camera;
 mod enemy;
+mod health;
 mod input;
 mod menu;
 mod objective;
