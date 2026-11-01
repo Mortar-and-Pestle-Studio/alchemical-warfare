@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    health::Health,
+    attack::AttackTimer,
+    health::ApplyDamage,
     objective::Objective,
     state::{AppState, PauseState},
 };
@@ -13,8 +14,7 @@ pub(super) fn plugin(app: &mut App) {
     )
     .add_systems(
         Update,
-        (move_to_objective, tick_attack_timer, attack_objective)
-            .run_if(in_state(PauseState::Running)),
+        (move_to_objective, attack_objective).run_if(in_state(PauseState::Running)),
     );
 }
 
@@ -23,23 +23,6 @@ pub struct Enemy {
     speed: f32,
     damage: u32,
     range: f32,
-}
-
-#[derive(Component, Clone, Debug, Default)]
-struct AttackTimer(Timer);
-
-impl AttackTimer {
-    fn new(attack_cooldown: f32) -> Self {
-        Self(Timer::from_seconds(attack_cooldown, TimerMode::Once))
-    }
-
-    fn is_ready(&self) -> bool {
-        self.0.is_finished()
-    }
-
-    fn reset(&mut self) {
-        self.0.reset();
-    }
 }
 
 fn spawn_enemy(mut commands: Commands) {
@@ -73,25 +56,22 @@ fn move_to_objective(
     }
 }
 
-fn tick_attack_timer(attack_timers: Query<&mut AttackTimer, With<Enemy>>, time: Res<Time>) {
-    for mut attack_timer in attack_timers {
-        attack_timer.0.tick(time.delta());
-    }
-}
-
 fn attack_objective(
     enemies: Query<(&Enemy, &mut AttackTimer, &Transform)>,
-    mut obj: Single<(&Transform, &mut Health), (With<Objective>, Without<Enemy>)>,
+    mut apply_damage: MessageWriter<ApplyDamage>,
+    obj: Single<(Entity, &Transform), (With<Objective>, Without<Enemy>)>,
 ) {
     for (enemy, mut attack_timer, enemy_tranform) in enemies {
         if !attack_timer.is_ready()
-            || enemy_tranform.translation.distance(obj.0.translation) > enemy.range
+            || enemy_tranform.translation.distance(obj.1.translation) > enemy.range
         {
             continue;
         }
 
-        obj.1.damage(enemy.damage);
-        info!("Obj health: {}", obj.1.current());
+        apply_damage.write(ApplyDamage {
+            amount: enemy.damage,
+            target: obj.0,
+        });
 
         attack_timer.reset();
     }
