@@ -1,0 +1,30 @@
+mod camera;
+mod input;
+mod menu;
+mod state;
+
+use bevy::{asset::AssetMetaCheck, prelude::*};
+
+fn main() -> AppExit {
+    App::new().add_plugins(app_plugin).run()
+}
+
+fn app_plugin(app: &mut App) {
+    app.add_plugins(
+        DefaultPlugins
+            .set(AssetPlugin {
+                meta_check: AssetMetaCheck::Never,
+                ..default()
+            })
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Bevy Jam 8".to_string(),
+                    fit_canvas_to_parent: true,
+                    ..default()
+                }),
+                ..default()
+            }),
+    );
+
+    app.add_plugins((camera::plugin, input::plugin, menu::plugin, state::plugin));
+}

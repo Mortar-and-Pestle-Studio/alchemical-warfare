@@ -1,0 +1,13 @@
+mod main;
+
+use bevy::prelude::*;
+use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
+
+use crate::{menu::main::main_menu, state::AppState};
+
+pub(super) fn plugin(app: &mut App) {
+    app.add_plugins(EguiPlugin::default()).add_systems(
+        EguiPrimaryContextPass,
+        main_menu.run_if(in_state(AppState::MainMenu)),
+    );
+}
