@@ -1,6 +1,8 @@
 mod camera;
+mod enemy;
 mod input;
 mod menu;
+mod objective;
 mod state;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
@@ -26,5 +28,12 @@ fn app_plugin(app: &mut App) {
             }),
     );
 
-    app.add_plugins((camera::plugin, input::plugin, menu::plugin, state::plugin));
+    app.add_plugins((
+        camera::plugin,
+        enemy::plugin,
+        input::plugin,
+        menu::plugin,
+        objective::plugin,
+        state::plugin,
+    ));
 }
