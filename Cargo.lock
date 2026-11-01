@@ -122,6 +122,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "alchemical-warfare"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_ecs_ldtk",
+ "bevy_egui",
+ "bevy_enhanced_input",
+]
+
+[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1283,16 +1293,6 @@ dependencies = [
  "bevy_window",
  "bevy_winit",
  "bevy_world_serialization",
-]
-
-[[package]]
-name = "bevy_jam_8"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_ecs_ldtk",
- "bevy_egui",
- "bevy_enhanced_input",
 ]
 
 [[package]]

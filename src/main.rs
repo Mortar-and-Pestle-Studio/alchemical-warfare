@@ -23,7 +23,7 @@ fn app_plugin(app: &mut App) {
             })
             .set(WindowPlugin {
                 primary_window: Some(Window {
-                    title: "Bevy Jam 8".to_string(),
+                    title: "Alchemical Warfare".to_string(),
                     fit_canvas_to_parent: true,
                     ..default()
                 }),
