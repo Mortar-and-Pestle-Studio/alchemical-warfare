@@ -199,7 +199,44 @@ Should use the existing Framework but be tailored to user experience. IF we want
 
 Enemy Health - Damage
 
-Enemy Health - (Potion damage RNG (6-10 base) - Enemy Armour ) - (Resistance Damage - Resistance)
+Well what is Damage?
+
+Enemy Health - (Potion damage RNG (6-10 base) - Enemy Armour ) - ((Resistance Damage x Percent of Potion) - Resistance)
+
+Ok well what is Resistance?
+
+Resistance is per damage type. So: Poison DoT deals let's say 4 damage, ignores armour and is affected only by resistance type so if enemy has 2 armour and 25% resistance, then `(4*0.75)*1.0 - 0 armour = 3 damage per second for 3 seconds`
+
+What happens if there is mixed damage? Each resistance type is calculated independantly:
+
+Assume enemy has 4 armour and 25% poison resistance and 50% fire resistance.
+
+Level 3 Poison Potion deals 12 damage after RNG generation. Sure. Well, that means it deals 12 additional poison damage per second for 3 seconds, total 48 damage (great single target! Notice: Poison affects do not stack! If a higher damaging poison is in affect, keep stronger version)
+
+So we get: `Damage dealt == - ((12 damage - 4 armour) - ((12 dps * 100% of Potion) * (75% Poison Resistance)) * 3 Seconds == 8 up front damage and 9 dps for 3 turns for a total of 27 DoT or 35 total damage`
+
+What if Level 3 Poison/Fire? Well, same 12 base damage after RNG, but then Fire AoE deals 6 AoE fire damage normally and 12 poison normally so we get:
+
+`((12 damage - 4 armour) - ((12 poison dps * (50% of Potion) * (75% Poison Resistance) * 3 seconds) - (6 Fire Dps * (50% of Potion) * 50% Fire resistance)`
+
+== `8 base damage - 4.5 dps poison per second for 3 seconds - 1.5 Fire Damage from AoE`
+
+Master Damage Formula should be:
+
+`(Base Damage - Armour) 
++ Fire Damage * 50% of Base Damage * Enemy Resistance
++ Lightning Damage * 50% of Base Damage * Enemy Resistance
++ Poison Damage * 100% of Base Damage * Enemy Resistance
++ Frost Damage * 40% of Base Damage * Enemy Resistance
+`
+
+Notice: 
+Acid Damage (no Bonus damage)
+Gunpowder Explosive (merely does Base Damage in AoE or could do 125% base damage as AoE)
+Gold Potion Reduces Base Damage by 25% (immensely important for high level gold potions affecting other formulas)
+Elixir does no Damage
+Void Poison does just base damage
+
 
 ## Views
 
