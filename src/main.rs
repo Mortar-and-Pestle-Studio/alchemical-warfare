@@ -1,5 +1,7 @@
+mod attack;
 mod camera;
 mod enemy;
+mod health;
 mod input;
 mod menu;
 mod objective;
@@ -29,8 +31,10 @@ fn app_plugin(app: &mut App) {
     );
 
     app.add_plugins((
+        attack::plugin,
         camera::plugin,
         enemy::plugin,
+        health::plugin,
         input::plugin,
         menu::plugin,
         objective::plugin,

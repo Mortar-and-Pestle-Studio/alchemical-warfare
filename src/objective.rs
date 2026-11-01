@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::state::{AppState, PauseState};
+use crate::{
+    health::Health,
+    state::{AppState, PauseState},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -19,6 +22,7 @@ fn spawn_objective(mut commands: Commands) {
 fn enemy_scene() -> impl Scene {
     bsn! {
         Objective
+        Health::new(10)
         Mesh2d(asset_value(Circle::new(64.0)))
         MeshMaterial2d<ColorMaterial>(asset_value(Color::srgb(0.0, 0.0, 1.0)))
         Transform::from_xyz(256.0, 64.0, 0.0)
