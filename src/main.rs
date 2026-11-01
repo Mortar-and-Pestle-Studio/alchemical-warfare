@@ -6,6 +6,7 @@ mod input;
 mod menu;
 mod objective;
 mod state;
+mod tower;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
@@ -39,5 +40,6 @@ fn app_plugin(app: &mut App) {
         menu::plugin,
         objective::plugin,
         state::plugin,
+        tower::plugin,
     ));
 }

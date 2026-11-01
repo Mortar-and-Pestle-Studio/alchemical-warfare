@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     attack::AttackTimer,
-    health::ApplyDamage,
+    health::{ApplyDamage, Dead, Health},
     objective::Objective,
     state::{AppState, PauseState},
 };
@@ -14,7 +14,8 @@ pub(super) fn plugin(app: &mut App) {
     )
     .add_systems(
         Update,
-        (move_to_objective, attack_objective).run_if(in_state(PauseState::Running)),
+        (move_to_objective, attack_objective, despawn_dead_enemies)
+            .run_if(in_state(PauseState::Running)),
     );
 }
 
@@ -37,6 +38,7 @@ fn enemy_scene() -> impl Scene {
             range: 32.0,
         }
         AttackTimer::new(1.0)
+        Health::new(10)
         Mesh2d(asset_value(Circle::new(32.0)))
         MeshMaterial2d<ColorMaterial>(asset_value(Color::srgb(1.0, 0.0, 0.0)))
         Transform::from_xyz(0.0, 0.0, 0.0)
@@ -74,5 +76,11 @@ fn attack_objective(
         });
 
         attack_timer.reset();
+    }
+}
+
+fn despawn_dead_enemies(mut commands: Commands, enemies: Query<(Entity, &Enemy), Added<Dead>>) {
+    for (entity, enemy) in enemies {
+        commands.entity(entity).despawn();
     }
 }
