@@ -1,5 +1,7 @@
 mod attack;
 mod camera;
+#[cfg(debug_assertions)]
+mod dev;
 mod enemy;
 mod game;
 mod health;
@@ -53,6 +55,9 @@ fn app_plugin(app: &mut App) {
         tower::plugin,
     ))
     .add_plugins(LdtkPlugin);
+
+    #[cfg(debug_assertions)]
+    app.add_plugins(dev::plugin);
 }
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
