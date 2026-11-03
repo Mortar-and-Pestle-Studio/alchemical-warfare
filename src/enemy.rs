@@ -4,17 +4,18 @@ use crate::{
     attack::AttackTimer,
     health::{ApplyDamage, Dead, Health},
     objective::Objective,
-    state::{AppState, PauseState},
+    state::PauseState,
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
-        OnEnter(AppState::Gameplay),
-        spawn_enemy.run_if(in_state(PauseState::Running)),
-    )
-    .add_systems(
+    app.add_message::<SpawnEnemy>().add_systems(
         Update,
-        (move_to_objective, attack_objective, despawn_dead_enemies)
+        (
+            spawn_enemies,
+            move_to_objective,
+            attack_objective,
+            despawn_dead_enemies,
+        )
             .run_if(in_state(PauseState::Running)),
     );
 }
@@ -26,22 +27,75 @@ pub struct Enemy {
     range: f32,
 }
 
-fn spawn_enemy(mut commands: Commands) {
-    commands.spawn_scene(enemy_scene());
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum EnemyKind {
+    Rat,
+    Orc,
 }
 
-fn enemy_scene() -> impl Scene {
+#[derive(Clone, Debug, PartialEq)]
+pub struct EnemyDesc {
+    kind: EnemyKind,
+    health: u32,
+    speed: f32,
+    damage: u32,
+    range: f32,
+    attack_cooldown: f32,
+}
+
+// TODO: move enemy config to separate files
+impl From<EnemyKind> for EnemyDesc {
+    fn from(kind: EnemyKind) -> Self {
+        match kind {
+            EnemyKind::Rat => Self {
+                kind,
+                health: 5,
+                speed: 128.0,
+                damage: 1,
+                range: 16.0,
+                attack_cooldown: 1.0,
+            },
+            EnemyKind::Orc => Self {
+                kind,
+                health: 15,
+                speed: 64.0,
+                damage: 2,
+                range: 32.0,
+                attack_cooldown: 1.5,
+            },
+        }
+    }
+}
+
+#[derive(Message)]
+pub struct SpawnEnemy {
+    pub kind: EnemyKind,
+    pub pos: Vec2,
+}
+
+fn spawn_enemies(mut commands: Commands, mut spawn_enemies: MessageReader<SpawnEnemy>) {
+    for spawn_enemy in spawn_enemies.read() {
+        commands.spawn_scene(enemy_scene(spawn_enemy.kind.into(), spawn_enemy.pos));
+    }
+}
+
+fn enemy_scene(desc: EnemyDesc, pos: Vec2) -> impl Scene {
+    let color = match desc.kind {
+        EnemyKind::Rat => Color::srgb(1.0, 0.0, 1.0),
+        EnemyKind::Orc => Color::srgb(1.0, 0.0, 0.0),
+    };
+
     bsn! {
         Enemy {
-            speed: 64.0,
-            damage: 1,
-            range: 32.0,
+            speed: { desc.speed },
+            damage: { desc.damage },
+            range: { desc.range },
         }
-        AttackTimer::new(1.0)
-        Health::new(10)
+        AttackTimer::new(desc.attack_cooldown)
+        Health::new(desc.health)
         Mesh2d(asset_value(Circle::new(32.0)))
-        MeshMaterial2d<ColorMaterial>(asset_value(Color::srgb(1.0, 0.0, 0.0)))
-        Transform::from_xyz(0.0, 0.0, 0.0)
+        MeshMaterial2d<ColorMaterial>(asset_value(color))
+        Transform::from_xyz(pos.x, pos.y, 0.0)
     }
 }
 
@@ -80,7 +134,7 @@ fn attack_objective(
 }
 
 fn despawn_dead_enemies(mut commands: Commands, enemies: Query<(Entity, &Enemy), Added<Dead>>) {
-    for (entity, enemy) in enemies {
+    for (entity, _enemy) in enemies {
         commands.entity(entity).despawn();
     }
 }
