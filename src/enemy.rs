@@ -8,16 +8,18 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_message::<SpawnEnemy>().add_systems(
-        Update,
-        (
-            spawn_enemies,
-            move_to_objective,
-            attack_objective,
-            despawn_dead_enemies,
-        )
-            .run_if(in_state(PauseState::Running)),
-    );
+    app.add_message::<SpawnEnemy>()
+        .add_message::<EnemyDied>()
+        .add_systems(
+            Update,
+            (
+                spawn_enemies,
+                move_to_objective,
+                attack_objective,
+                despawn_dead_enemies,
+            )
+                .run_if(in_state(PauseState::Running)),
+        );
 }
 
 #[derive(Component, Clone, Debug, Default)]
@@ -72,6 +74,9 @@ pub struct SpawnEnemy {
     pub kind: EnemyKind,
     pub pos: Vec2,
 }
+
+#[derive(Message)]
+pub struct EnemyDied;
 
 fn spawn_enemies(mut commands: Commands, mut spawn_enemies: MessageReader<SpawnEnemy>) {
     for spawn_enemy in spawn_enemies.read() {
@@ -133,8 +138,13 @@ fn attack_objective(
     }
 }
 
-fn despawn_dead_enemies(mut commands: Commands, enemies: Query<(Entity, &Enemy), Added<Dead>>) {
+fn despawn_dead_enemies(
+    mut commands: Commands,
+    enemies: Query<(Entity, &Enemy), Added<Dead>>,
+    mut enemy_died: MessageWriter<EnemyDied>,
+) {
     for (entity, _enemy) in enemies {
+        enemy_died.write(EnemyDied);
         commands.entity(entity).despawn();
     }
 }

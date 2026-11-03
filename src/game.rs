@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
+    enemy::EnemyDied,
     spawner::{FinishedSpawningGroup, SpawnEnemies},
     state::{AppState, PauseState},
     wave::{Wave, Waves, WavesDef},
@@ -9,10 +10,16 @@ use crate::{
 pub(super) fn plugin(app: &mut App) {
     app.add_message::<StartNextWave>()
         .add_message::<WaveStarted>()
+        .add_message::<WaveFinished>()
         .add_systems(OnEnter(AppState::Gameplay), create_game)
         .add_systems(
             Update,
-            (on_start_next_wave, on_finished_spawning_group).run_if(in_state(PauseState::Running)),
+            (
+                on_start_next_wave,
+                on_finished_spawning_group,
+                on_enemy_died,
+            )
+                .run_if(in_state(PauseState::Running)),
         );
 }
 
@@ -47,6 +54,9 @@ pub struct StartNextWave;
 
 #[derive(Message)]
 pub struct WaveStarted;
+
+#[derive(Message)]
+pub struct WaveFinished;
 
 fn on_start_next_wave(
     mut game: ResMut<Game>,
@@ -87,6 +97,35 @@ fn on_finished_spawning_group(
                 spawn_enemies.write(SpawnEnemies(wave.next_spawn_group().clone()));
             }
         }
+    }
+}
+
+fn on_enemy_died(
+    mut game: ResMut<Game>,
+    mut enemy_died: MessageReader<EnemyDied>,
+    mut wave_finished: MessageWriter<WaveFinished>,
+) {
+    let mut is_wave_finished = false;
+
+    if let GameState::WaveInProgress {
+        wave: _,
+        enemies_remaining,
+    } = &mut game.state
+    {
+        for _enemy_died in enemy_died.read() {
+            *enemies_remaining -= 1;
+
+            if *enemies_remaining == 0 {
+                is_wave_finished = true;
+            }
+        }
+    }
+
+    if is_wave_finished {
+        wave_finished.write(WaveFinished);
+        info!("wave finished");
+
+        game.state = GameState::Idle;
     }
 }
 

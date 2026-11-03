@@ -19,7 +19,7 @@ impl Waves {
     }
 
     pub fn next_wave(&mut self) -> &Wave {
-        assert!(self.current != self.waves.len() - 1);
+        assert!(self.current != self.waves.len());
 
         let next_wave = &self.waves[self.current];
         self.current += 1;
