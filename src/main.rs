@@ -1,3 +1,4 @@
+mod asset;
 mod attack;
 mod camera;
 #[cfg(debug_assertions)]
@@ -6,6 +7,7 @@ mod enemy;
 mod game;
 mod health;
 mod input;
+mod map;
 mod menu;
 mod objective;
 mod spawner;
@@ -17,11 +19,7 @@ use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_ecs_ldtk::prelude::*;
 
 fn main() -> AppExit {
-    App::new()
-        .add_plugins(app_plugin)
-        .add_systems(Startup, startup)
-        .insert_resource(LevelSelection::index(0))
-        .run()
+    App::new().add_plugins(app_plugin).run()
 }
 
 fn app_plugin(app: &mut App) {
@@ -42,12 +40,14 @@ fn app_plugin(app: &mut App) {
             .set(ImagePlugin::default_nearest()),
     )
     .add_plugins((
+        asset::plugin,
         attack::plugin,
         camera::plugin,
         enemy::plugin,
         game::plugin,
         health::plugin,
         input::plugin,
+        map::plugin,
         menu::plugin,
         objective::plugin,
         spawner::plugin,
@@ -58,20 +58,4 @@ fn app_plugin(app: &mut App) {
 
     #[cfg(debug_assertions)]
     app.add_plugins(dev::plugin);
-}
-
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // commands.spawn((
-    //     Camera2d,
-    //     Projection::Orthographic(OrthographicProjection {
-    //         scale: 0.5,
-    //         ..OrthographicProjection::default_2d()
-    //     }),
-    //     Transform::from_xyz(1280.0 / 4.0, 720.0 / 4.0, 0.0),
-    // ));
-
-    commands.spawn(LdtkWorldBundle {
-        ldtk_handle: asset_server.load("maps/test_0.ldtk").into(),
-        ..Default::default()
-    });
 }

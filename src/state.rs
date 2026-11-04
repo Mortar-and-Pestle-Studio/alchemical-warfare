@@ -7,8 +7,8 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub enum AppState {
     #[default]
-    MainMenu,
     Loading,
+    MainMenu,
     Gameplay,
 }
 
