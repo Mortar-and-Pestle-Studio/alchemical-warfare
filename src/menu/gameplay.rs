@@ -65,3 +65,18 @@ pub(super) fn game_won(
 
     Ok(())
 }
+
+pub(super) fn game_lost(
+    mut contexts: EguiContexts,
+    mut next_state: ResMut<NextState<AppState>>,
+) -> Result {
+    egui::Window::new("Game Lost").show(contexts.ctx_mut()?, |ui| {
+        ui.label("You lose");
+
+        if ui.button("Main Menu").clicked() {
+            next_state.set(AppState::MainMenu);
+        }
+    });
+
+    Ok(())
+}

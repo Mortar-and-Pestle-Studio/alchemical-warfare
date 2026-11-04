@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     enemy::EnemyDied,
+    objective::ObjectiveDied,
     spawner::{FinishedSpawningGroup, SpawnEnemies},
     state::{AppState, PauseState},
     wave::{Wave, Waves, WavesDef},
@@ -20,6 +21,7 @@ pub(super) fn plugin(app: &mut App) {
                 on_start_next_wave,
                 on_finished_spawning_group,
                 on_enemy_died,
+                lose_game_on_objective_death,
             )
                 .run_if(in_state(PauseState::Running)),
         );
@@ -146,6 +148,17 @@ fn on_enemy_died(
         }
         // Enemies still remaining in wave
         (false, _) => {}
+    }
+}
+
+fn lose_game_on_objective_death(
+    mut game: ResMut<Game>,
+    mut obj_died: MessageReader<ObjectiveDied>,
+    mut game_lost: MessageWriter<GameLost>,
+) {
+    for _obj_died in obj_died.read() {
+        game.state = GameState::Lost;
+        game_lost.write(GameLost);
     }
 }
 
