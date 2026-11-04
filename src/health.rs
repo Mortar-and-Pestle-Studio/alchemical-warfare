@@ -41,16 +41,36 @@ impl Health {
 #[derive(Component, Clone, Debug, Default)]
 pub struct Dead;
 
+#[derive(Debug, Clone)]
+pub struct Damage {
+    amount: u32,
+    kind: DamageKind,
+}
+
+impl Damage {
+    pub fn new(amount: u32, kind: DamageKind) -> Self {
+        Self { amount, kind }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum DamageKind {
+    Physical,
+    Fire,
+    Poison,
+    Lightning,
+}
+
 #[derive(Message)]
 pub struct ApplyDamage {
-    pub amount: u32,
+    pub damage: Damage,
     pub target: Entity,
 }
 
 /// Damage actually dealt post resistances
 #[derive(Message)]
 pub struct DamageApplied {
-    pub amount: u32,
+    pub damage: Damage,
     pub target: Entity,
 }
 
@@ -64,11 +84,11 @@ fn apply_damage(
         if let Ok(mut health) = healths.get_mut(apply_damage.target) {
             // TODO: calculate damage and resistances
             damage_applied.write(DamageApplied {
-                amount: apply_damage.amount,
+                damage: apply_damage.damage.clone(),
                 target: apply_damage.target,
             });
 
-            if health.damage(apply_damage.amount).is_dead() {
+            if health.damage(apply_damage.damage.amount).is_dead() {
                 commands.entity(apply_damage.target).insert(Dead);
             }
         }

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     attack::AttackTimer,
-    health::{ApplyDamage, Dead, Health},
+    health::{ApplyDamage, Damage, DamageKind, Dead, Health},
     objective::Objective,
     state::{AppState, PauseState},
 };
@@ -131,7 +131,7 @@ fn attack_objective(
         }
 
         apply_damage.write(ApplyDamage {
-            amount: enemy.damage,
+            damage: Damage::new(enemy.damage, DamageKind::Physical),
             target: obj.0,
         });
 

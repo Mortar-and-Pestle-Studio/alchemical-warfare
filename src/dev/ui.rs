@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use bevy_egui::{EguiContexts, egui};
 
-use crate::{enemy::Enemy, health::ApplyDamage};
+use crate::{
+    enemy::Enemy,
+    health::{ApplyDamage, Damage, DamageKind},
+};
 
 pub(super) fn gameplay_dev_menu(
     mut contexts: EguiContexts,
@@ -13,7 +16,7 @@ pub(super) fn gameplay_dev_menu(
         if ui.button("Kill remaining enemies").clicked() {
             for enemy in enemies {
                 apply_damage.write(ApplyDamage {
-                    amount: u32::MAX,
+                    damage: Damage::new(u32::MAX, DamageKind::Physical),
                     target: enemy,
                 });
             }
