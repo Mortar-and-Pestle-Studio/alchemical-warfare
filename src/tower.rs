@@ -32,6 +32,7 @@ fn tower_scene() -> impl Scene {
         Mesh2d(asset_value(Circle::new(32.0)))
         MeshMaterial2d<ColorMaterial>(asset_value(Color::srgb(0.0, 1.0, 0.0)))
         Transform::from_xyz(0.0, 128.0, 0.0)
+        DespawnOnExit<AppState>(AppState::Gameplay)
     }
 }
 

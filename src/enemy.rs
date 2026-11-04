@@ -4,7 +4,7 @@ use crate::{
     attack::AttackTimer,
     health::{ApplyDamage, Dead, Health},
     objective::Objective,
-    state::PauseState,
+    state::{AppState, PauseState},
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -101,6 +101,7 @@ fn enemy_scene(desc: EnemyDesc, pos: Vec2) -> impl Scene {
         Mesh2d(asset_value(Circle::new(32.0)))
         MeshMaterial2d<ColorMaterial>(asset_value(color))
         Transform::from_xyz(pos.x, pos.y, 0.0)
+        DespawnOnExit<AppState>(AppState::Gameplay)
     }
 }
 
