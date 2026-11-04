@@ -4,6 +4,7 @@ use crate::state::AppState;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_message::<ApplyDamage>()
+        .add_message::<DamageApplied>()
         .add_systems(Update, apply_damage.run_if(in_state(AppState::Gameplay)));
 }
 
@@ -46,13 +47,27 @@ pub struct ApplyDamage {
     pub target: Entity,
 }
 
+/// Damage actually dealt post resistances
+#[derive(Message)]
+pub struct DamageApplied {
+    pub amount: u32,
+    pub target: Entity,
+}
+
 fn apply_damage(
     mut commands: Commands,
     mut apply_damages: MessageReader<ApplyDamage>,
+    mut damage_applied: MessageWriter<DamageApplied>,
     mut healths: Query<&mut Health>,
 ) {
     for apply_damage in apply_damages.read() {
         if let Ok(mut health) = healths.get_mut(apply_damage.target) {
+            // TODO: calculate damage and resistances
+            damage_applied.write(DamageApplied {
+                amount: apply_damage.amount,
+                target: apply_damage.target,
+            });
+
             if health.damage(apply_damage.amount).is_dead() {
                 commands.entity(apply_damage.target).insert(Dead);
             }

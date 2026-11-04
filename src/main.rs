@@ -1,5 +1,6 @@
 mod asset;
 mod attack;
+mod audio;
 mod camera;
 #[cfg(debug_assertions)]
 mod dev;
@@ -42,6 +43,7 @@ fn app_plugin(app: &mut App) {
     .add_plugins((
         asset::plugin,
         attack::plugin,
+        audio::plugin,
         camera::plugin,
         enemy::plugin,
         game::plugin,
