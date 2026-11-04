@@ -18,6 +18,10 @@ impl Waves {
         self.waves.len()
     }
 
+    pub fn waves_remaining(&self) -> usize {
+        self.waves.len() - self.current
+    }
+
     pub fn next_wave(&mut self) -> &Wave {
         assert!(self.current != self.waves.len());
 

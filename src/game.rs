@@ -11,6 +11,8 @@ pub(super) fn plugin(app: &mut App) {
     app.add_message::<StartNextWave>()
         .add_message::<WaveStarted>()
         .add_message::<WaveFinished>()
+        .add_message::<GameWon>()
+        .add_message::<GameLost>()
         .add_systems(OnEnter(AppState::Gameplay), create_game)
         .add_systems(
             Update,
@@ -47,6 +49,8 @@ pub enum GameState {
         wave: Wave,
         enemies_remaining: u32,
     },
+    Won,
+    Lost,
 }
 
 #[derive(Message)]
@@ -57,6 +61,12 @@ pub struct WaveStarted;
 
 #[derive(Message)]
 pub struct WaveFinished;
+
+#[derive(Message)]
+pub struct GameWon;
+
+#[derive(Message)]
+pub struct GameLost;
 
 fn on_start_next_wave(
     mut game: ResMut<Game>,
@@ -104,8 +114,9 @@ fn on_enemy_died(
     mut game: ResMut<Game>,
     mut enemy_died: MessageReader<EnemyDied>,
     mut wave_finished: MessageWriter<WaveFinished>,
+    mut game_won: MessageWriter<GameWon>,
 ) {
-    let mut is_wave_finished = false;
+    let mut all_wave_enemies_killed = false;
 
     if let GameState::WaveInProgress {
         wave: _,
@@ -116,16 +127,25 @@ fn on_enemy_died(
             *enemies_remaining -= 1;
 
             if *enemies_remaining == 0 {
-                is_wave_finished = true;
+                all_wave_enemies_killed = true;
             }
         }
     }
 
-    if is_wave_finished {
-        wave_finished.write(WaveFinished);
-        info!("wave finished");
+    match (all_wave_enemies_killed, game.waves.waves_remaining() == 0) {
+        (true, true) => {
+            wave_finished.write(WaveFinished);
 
-        game.state = GameState::Idle;
+            game.state = GameState::Won;
+            game_won.write(GameWon);
+        }
+        (true, false) => {
+            wave_finished.write(WaveFinished);
+
+            game.state = GameState::Idle;
+        }
+        // Enemies still remaining in wave
+        (false, _) => {}
     }
 }
 

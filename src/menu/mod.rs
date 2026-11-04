@@ -5,7 +5,11 @@ use bevy::prelude::*;
 use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
 
 use crate::{
-    menu::{gameplay::gameplay_menu, main::main_menu},
+    game::{Game, GameState},
+    menu::{
+        gameplay::{game_won, gameplay_menu},
+        main::main_menu,
+    },
     state::AppState,
 };
 
@@ -17,6 +21,12 @@ pub(super) fn plugin(app: &mut App) {
         )
         .add_systems(
             EguiPrimaryContextPass,
-            gameplay_menu.run_if(in_state(AppState::Gameplay)),
+            (
+                gameplay_menu,
+                game_won.run_if(resource_exists_and(|game: &Game| {
+                    *game.state() == GameState::Won
+                })),
+            )
+                .run_if(in_state(AppState::Gameplay)),
         );
 }

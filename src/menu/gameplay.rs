@@ -6,6 +6,7 @@ use crate::{
     game::{Game, GameState, StartNextWave},
     health::Health,
     objective::Objective,
+    state::AppState,
 };
 
 pub(super) fn gameplay_menu(
@@ -44,6 +45,21 @@ pub(super) fn gameplay_menu(
                 enemy_health.current(),
                 enemy_health.max()
             ));
+        }
+    });
+
+    Ok(())
+}
+
+pub(super) fn game_won(
+    mut contexts: EguiContexts,
+    mut next_state: ResMut<NextState<AppState>>,
+) -> Result {
+    egui::Window::new("Game Won").show(contexts.ctx_mut()?, |ui| {
+        ui.label("You win");
+
+        if ui.button("Main Menu").clicked() {
+            next_state.set(AppState::MainMenu);
         }
     });
 
