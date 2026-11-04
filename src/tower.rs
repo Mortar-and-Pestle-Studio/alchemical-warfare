@@ -4,6 +4,7 @@ use crate::{
     attack::AttackTimer,
     enemy::Enemy,
     health::ApplyDamage,
+    projectile::{ProjectileDef, SpawnProjectile, Target},
     state::{AppState, PauseState},
 };
 
@@ -39,7 +40,7 @@ fn tower_scene() -> impl Scene {
 fn attack_enemies(
     towers: Query<(&Tower, &mut AttackTimer, &Transform)>,
     enemies: Query<(Entity, &Transform), (With<Enemy>, Without<Tower>)>,
-    mut apply_damage: MessageWriter<ApplyDamage>,
+    mut spawn_projectile: MessageWriter<SpawnProjectile>,
 ) {
     for (tower, mut attack_timer, tower_transform) in towers {
         if !attack_timer.is_ready() {
@@ -65,9 +66,10 @@ fn attack_enemies(
         };
 
         // TODO: spawn potion instead of directly damaging
-        apply_damage.write(ApplyDamage {
-            amount: tower.damage,
-            target: enemy_entity,
+        spawn_projectile.write(SpawnProjectile {
+            def: ProjectileDef::default(),
+            pos: tower_transform.translation.truncate(),
+            target: Target::Pos(nearest_enemy_transform.translation.truncate()),
         });
 
         attack_timer.reset();

@@ -11,6 +11,7 @@ mod input;
 mod map;
 mod menu;
 mod objective;
+mod projectile;
 mod spawner;
 mod state;
 mod tower;
@@ -52,6 +53,7 @@ fn app_plugin(app: &mut App) {
         map::plugin,
         menu::plugin,
         objective::plugin,
+        projectile::plugin,
         spawner::plugin,
         state::plugin,
         tower::plugin,
