@@ -12,6 +12,7 @@ fn spawn_map(mut commands: Commands, map_assets: Res<MapAssets>) {
     commands.spawn((
         LdtkWorldBundle {
             ldtk_handle: map_assets.test.clone().into(),
+            transform: Transform::from_xyz(0.0, 0.0, -10.0),
             ..Default::default()
         },
         DespawnOnExit(AppState::Gameplay),
