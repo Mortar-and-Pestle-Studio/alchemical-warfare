@@ -34,7 +34,7 @@ fn spawn_tower(mut commands: Commands) {
 fn tower_scene(pos: Vec2) -> impl Scene {
     bsn! {
         Tower {
-            potion: Potion::basic(),
+            potion: Potion::fire(),
             range: 128.0,
         }
         AttackTimer::new(1.0)

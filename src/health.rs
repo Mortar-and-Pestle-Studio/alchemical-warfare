@@ -51,9 +51,13 @@ impl Damage {
     pub fn new(amount: u32, kind: DamageKind) -> Self {
         Self { amount, kind }
     }
+
+    pub fn kind(&self) -> DamageKind {
+        self.kind
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum DamageKind {
     Physical,
     Fire,

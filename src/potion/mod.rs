@@ -1,3 +1,5 @@
+mod effect;
+
 use std::num::NonZeroU8;
 
 use bevy::prelude::*;
@@ -5,15 +7,19 @@ use bevy::prelude::*;
 use crate::{
     enemy::Enemy,
     health::{ApplyDamage, Damage, DamageKind},
+    potion::effect::Ignited,
     projectile::{Projectile, ProjectileDef, ReachedTarget, Target},
     state::AppState,
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_message::<SpawnPotionProjectile>().add_systems(
-        Update,
-        (spawn_projectiles, potion_projectile_reached_target).run_if(in_state(AppState::Gameplay)),
-    );
+    app.add_plugins(effect::plugin)
+        .add_message::<SpawnPotionProjectile>()
+        .add_systems(
+            Update,
+            (spawn_projectiles, potion_projectile_reached_target)
+                .run_if(in_state(AppState::Gameplay)),
+        );
 }
 
 #[derive(Debug, Component, Clone)]
@@ -35,7 +41,7 @@ impl Potion {
             pierce: 4,
         }
     }
-    fn fire() -> Self {
+    pub fn fire() -> Self {
         Self {
             effects: vec![PotionEffect {
                 level: NonZeroU8::new(1).unwrap(),
@@ -162,7 +168,16 @@ fn potion_projectile_reached_target(
                         damage,
                         tick_count,
                         interval,
-                    } => todo!(),
+                    } => match damage.kind() {
+                        DamageKind::Fire => {
+                            commands.entity(enemy_entity).insert(Ignited::new(
+                                damage.clone(),
+                                *tick_count,
+                                *interval,
+                            ));
+                        }
+                        _ => todo!(),
+                    },
                     Effect::Slow { mult, duration } => todo!(),
                     Effect::Stun { duration } => todo!(),
                 }
