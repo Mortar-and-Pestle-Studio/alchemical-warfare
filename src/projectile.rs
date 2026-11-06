@@ -11,31 +11,23 @@ pub(super) fn plugin(app: &mut App) {
 
 #[derive(Debug, Clone)]
 pub struct ProjectileDef {
-    damage: u32,
     speed: f32,
 }
 
 impl Default for ProjectileDef {
     fn default() -> Self {
-        Self {
-            damage: 1,
-            speed: 64.0,
-        }
+        Self { speed: 128.0 }
     }
 }
 
 #[derive(Component, Clone)]
-struct Projectile {
-    damage: u32,
+pub struct Projectile {
     speed: f32,
 }
 
 impl Default for Projectile {
     fn default() -> Self {
-        Self {
-            damage: 1,
-            speed: 64.0,
-        }
+        Self { speed: 128.0 }
     }
 }
 
@@ -49,6 +41,9 @@ impl Default for Target {
         Self::Pos(Vec2::ZERO)
     }
 }
+
+#[derive(Component, Clone)]
+pub struct ReachedTarget;
 
 #[derive(Message)]
 pub struct SpawnProjectile {
@@ -70,7 +65,6 @@ fn spawn_projectiles(mut commands: Commands, mut spawn_projectile: MessageReader
 fn projectile_scene(def: ProjectileDef, pos: Vec2, target: Target) -> impl Scene {
     bsn! {
         Projectile {
-            damage: { def.damage },
             speed: { def.speed },
         }
         target
@@ -81,11 +75,22 @@ fn projectile_scene(def: ProjectileDef, pos: Vec2, target: Target) -> impl Scene
     }
 }
 
-fn move_projectiles(projectiles: Query<(&Projectile, &Target, &mut Transform)>, time: Res<Time>) {
-    for (projectile, target, mut transform) in projectiles {
+fn move_projectiles(
+    mut commands: Commands,
+    projectiles: Query<(Entity, &Projectile, &Target, &mut Transform)>,
+    time: Res<Time>,
+) {
+    for (entity, projectile, target, mut transform) in projectiles {
         let Target::Pos(target) = target;
         let dir = (target - transform.translation.truncate()).normalize_or_zero();
 
         transform.translation += (dir * projectile.speed * time.delta_secs()).extend(0.0);
+
+        if transform.translation.truncate().distance(*target) <= 0.5 {
+            commands
+                .entity(entity)
+                .remove::<Target>()
+                .insert(ReachedTarget);
+        }
     }
 }

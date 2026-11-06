@@ -4,7 +4,8 @@ use crate::{
     attack::AttackTimer,
     enemy::Enemy,
     input::CursorWorldPos,
-    projectile::{ProjectileDef, SpawnProjectile, Target},
+    potion::{Potion, SpawnPotionProjectile},
+    projectile::{ProjectileDef, Target},
     state::{AppState, PauseState},
 };
 
@@ -19,7 +20,7 @@ pub(super) fn plugin(app: &mut App) {
 
 #[derive(Component, Clone, Debug, Default)]
 pub struct Tower {
-    damage: u32,
+    potion: Option<Potion>,
     range: f32,
 }
 
@@ -33,7 +34,7 @@ fn spawn_tower(mut commands: Commands) {
 fn tower_scene(pos: Vec2) -> impl Scene {
     bsn! {
         Tower {
-            damage: 1,
+            potion: Potion::basic(),
             range: 128.0,
         }
         AttackTimer::new(1.0)
@@ -47,14 +48,18 @@ fn tower_scene(pos: Vec2) -> impl Scene {
 fn attack_enemies(
     towers: Query<(&Tower, &mut AttackTimer, &Transform)>,
     enemies: Query<(Entity, &Transform), (With<Enemy>, Without<Tower>)>,
-    mut spawn_projectile: MessageWriter<SpawnProjectile>,
+    mut spawn_potion_projectile: MessageWriter<SpawnPotionProjectile>,
 ) {
     for (tower, mut attack_timer, tower_transform) in towers {
         if !attack_timer.is_ready() {
             continue;
         }
 
-        let Some((enemy_entity, nearest_enemy_transform)) =
+        let Some(potion) = &tower.potion else {
+            continue;
+        };
+
+        let Some((_enemy_entity, nearest_enemy_transform)) =
             enemies
                 .iter()
                 .min_by(|(_, e_transform_a), (_, e_transform_b)| {
@@ -72,10 +77,11 @@ fn attack_enemies(
             continue;
         };
 
-        spawn_projectile.write(SpawnProjectile {
+        spawn_potion_projectile.write(SpawnPotionProjectile {
             def: ProjectileDef::default(),
             pos: tower_transform.translation.truncate(),
             target: Target::Pos(nearest_enemy_transform.translation.truncate()),
+            potion: potion.clone(),
         });
 
         attack_timer.reset();

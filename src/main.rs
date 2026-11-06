@@ -11,6 +11,7 @@ mod input;
 mod map;
 mod menu;
 mod objective;
+mod potion;
 mod projectile;
 mod spawner;
 mod state;
@@ -53,11 +54,12 @@ fn app_plugin(app: &mut App) {
         map::plugin,
         menu::plugin,
         objective::plugin,
+        potion::plugin,
         projectile::plugin,
         spawner::plugin,
         state::plugin,
-        tower::plugin,
     ))
+    .add_plugins(tower::plugin)
     .add_plugins(LdtkPlugin);
 
     #[cfg(debug_assertions)]
