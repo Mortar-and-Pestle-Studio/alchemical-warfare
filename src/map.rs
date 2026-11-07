@@ -8,7 +8,10 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(OnEnter(AppState::Gameplay), spawn_map);
 }
 
-fn spawn_map(mut commands: Commands, map_assets: Res<MapAssets>) {
+fn spawn_map(
+    mut commands: Commands,
+    map_assets: Res<MapAssets>,
+) {
     commands.spawn((
         LdtkWorldBundle {
             ldtk_handle: map_assets.test.clone().into(),
