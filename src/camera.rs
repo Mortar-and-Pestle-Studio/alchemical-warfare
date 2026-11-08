@@ -26,6 +26,7 @@ fn spawn_camera(mut commands: Commands) {
         )
     ));
 }
+
 #[allow(clippy::cast_precision_loss)]
 fn on_level_load(
     mut level_events: MessageReader<LevelEvent>,
