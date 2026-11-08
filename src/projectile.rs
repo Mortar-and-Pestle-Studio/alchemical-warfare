@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use bevy::prelude::*;
 
 use crate::state::AppState;
@@ -82,15 +84,28 @@ fn move_projectiles(
 ) {
     for (entity, projectile, target, mut transform) in projectiles {
         let Target::Pos(target) = target;
+
         let dir = (target - transform.translation.truncate()).normalize_or_zero();
+        let distance_to_target = transform.translation.truncate().distance(*target);
+        let delta = dir * projectile.speed * time.delta_secs();
 
-        transform.translation += (dir * projectile.speed * time.delta_secs()).extend(0.0);
+        match distance_to_target.partial_cmp(&delta.length()) {
+            Some(ordering) => match ordering {
+                Ordering::Greater | Ordering::Equal => {
+                    transform.translation += delta.extend(0.0);
+                }
+                // Would go past target location
+                Ordering::Less => {
+                    transform.translation.x = target.x;
+                    transform.translation.y = target.y;
 
-        if transform.translation.truncate().distance(*target) <= 0.5 {
-            commands
-                .entity(entity)
-                .remove::<Target>()
-                .insert(ReachedTarget);
-        }
+                    commands
+                        .entity(entity)
+                        .remove::<Target>()
+                        .insert(ReachedTarget);
+                }
+            },
+            None => warn!("NaN in projectile movement"),
+        };
     }
 }
