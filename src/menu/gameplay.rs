@@ -7,6 +7,7 @@ use crate::{
     health::Health,
     objective::Objective,
     state::AppState,
+    tower::{SelectedTower, Tower},
 };
 
 pub(super) fn gameplay_menu(
@@ -15,6 +16,8 @@ pub(super) fn gameplay_menu(
     enemy_healths: Query<&Health, With<Enemy>>,
     game: Res<Game>,
     mut start_next_wave: MessageWriter<StartNextWave>,
+    selected: Res<SelectedTower>,
+    towers: Query<&Tower>,
 ) -> Result {
     egui::Window::new("Gameplay").show(contexts.ctx_mut()?, |ui| {
         ui.label(format!(
@@ -45,6 +48,12 @@ pub(super) fn gameplay_menu(
                 enemy_health.current(),
                 enemy_health.max()
             ));
+        }
+
+        if let Some(selected_tower) = selected.get()
+            && let Ok(tower) = towers.get(selected_tower)
+        {
+            ui.label("Tower selected");
         }
     });
 

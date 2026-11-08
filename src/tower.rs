@@ -11,11 +11,21 @@ use crate::{
 
 pub(super) fn plugin(app: &mut App) {
     app.add_message::<TryPlaceTower>()
+        .init_resource::<SelectedTower>()
         .add_systems(OnEnter(AppState::Gameplay), spawn_tower)
         .add_systems(
             Update,
             (try_place_tower, attack_enemies).run_if(in_state(PauseState::Running)),
         );
+}
+
+#[derive(Resource, Default)]
+pub struct SelectedTower(Option<Entity>);
+
+impl SelectedTower {
+    pub fn get(&self) -> Option<Entity> {
+        self.0
+    }
 }
 
 #[derive(Component, Clone, Debug, Default)]
@@ -37,12 +47,17 @@ fn tower_scene(pos: Vec2) -> impl Scene {
             potion: Potion::fire(),
             range: 128.0,
         }
+        on(select_tower)
         AttackTimer::new(1.0)
         Mesh2d(asset_value(Circle::new(32.0)))
         MeshMaterial2d<ColorMaterial>(asset_value(Color::srgb(0.0, 1.0, 0.0)))
         Transform::from_xyz(pos.x, pos.y, 0.0)
         DespawnOnExit<AppState>(AppState::Gameplay)
     }
+}
+
+fn select_tower(click: On<PointerClick>, mut selected: ResMut<SelectedTower>) {
+    selected.0 = Some(click.entity);
 }
 
 fn attack_enemies(
