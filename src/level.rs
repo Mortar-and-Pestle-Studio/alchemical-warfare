@@ -15,6 +15,7 @@ pub(super) fn plugin(app: &mut App) {
         .add_message::<OnLevelLoadEvent>();
 }
 
+#[derive(PartialEq)]
 pub enum GroundKind {
     All,
     PlayerOnly,
@@ -28,6 +29,7 @@ pub struct GroundLayer {
     tiles: Vec<Option<GroundKind>>
 }
 
+#[derive(PartialEq)]
 pub enum WallKind {
     All,
     PlayerOnly,
@@ -41,6 +43,7 @@ pub struct WallLayer {
     tiles: Vec<Option<WallKind>>
 }
 
+#[derive(PartialEq)]
 pub enum SpawnsKind {
     Enemy,
 }
@@ -52,6 +55,7 @@ pub struct SpawnsLayer {
     tiles: Vec<Option<SpawnsKind>>
 }
 
+#[derive(PartialEq)]
 pub enum BaseKind {
     Standard,
 }
@@ -64,15 +68,19 @@ pub struct BasesLayer {
 }
 
 #[derive(PartialEq)]
-pub enum CameraFocus {
+pub enum CameraFocusKind {
     Min,
     Max,
 }
 
-pub struct CameraFocusLayer {
+pub struct CameraFocus {
     pub min: Vec2,
     pub max: Vec2,
     pub center: Vec2,
+}
+
+pub struct Pathfinding {
+
 }
 
 pub struct Level {
@@ -82,7 +90,8 @@ pub struct Level {
     pub wall: WallLayer,
     pub spawns: SpawnsLayer,
     pub bases: BasesLayer,
-    pub camera_focus: CameraFocusLayer,
+    pub camera_focus: CameraFocus,
+    pub pathfinding: Pathfinding
 }
 
 #[derive(Default, Resource)]
@@ -245,7 +254,7 @@ impl BasesLayer {
     }
 }
 
-impl CameraFocusLayer {
+impl CameraFocus {
     pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
         let ldtk_layer: &LayerInstance = ldtk_level
             .layer_instances
@@ -263,18 +272,18 @@ impl CameraFocusLayer {
         let mut min_index: Option<usize> = None;
         let mut max_index: Option<usize> = None;
         for (index, value) in ldtk_layer.int_grid_csv.iter().enumerate() {
-            let value_enum = match value {
-                1 => Some(CameraFocus::Min),
-                2 => Some(CameraFocus::Max),
+            let value = match value {
+                1 => Some(CameraFocusKind::Min),
+                2 => Some(CameraFocusKind::Max),
                 _ => None,
             };
-            if value_enum == Some(CameraFocus::Min) {
+            if value == Some(CameraFocusKind::Min) {
                 if min_index.is_some() {
                     panic!("Camera min has already been found");
                 } else {
                     min_index = Some(index);
                 }
-            } else if value_enum == Some(CameraFocus::Max) {
+            } else if value == Some(CameraFocusKind::Max) {
                 if max_index.is_some() {
                     panic!("Camera max has already been found");
                 } else {
@@ -304,6 +313,36 @@ impl CameraFocusLayer {
     }
 }
 
+impl Pathfinding {
+    pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
+        let ground_ldtk_layer: &LayerInstance = ldtk_level
+            .layer_instances
+            .as_ref()
+            .unwrap()
+            .iter()
+            .find(|level| level.identifier == "Ground")
+            .unwrap();
+
+        let walls_ldtk_layer: &LayerInstance = ldtk_level
+            .layer_instances
+            .as_ref()
+            .unwrap()
+            .iter()
+            .find(|level| level.identifier == "Walls")
+            .unwrap();
+
+        assert_eq!(ground_ldtk_layer.int_grid_csv.len(), walls_ldtk_layer.int_grid_csv.len());
+
+        let enemy_valid_grids: Vec<bool> = std::iter::zip(&ground_ldtk_layer.int_grid_csv, &walls_ldtk_layer.int_grid_csv)
+            .map(|(g, w)| !matches!(w, 1 | 3) && matches!(g, 1 | 3))
+            .collect();
+
+        Self {
+
+        }
+    }
+}
+
 impl Level {
     pub fn new(ldtk_level: &LdtkLevel) -> Self {
         Self {
@@ -313,22 +352,8 @@ impl Level {
             wall: WallLayer::from_ldtk_level(ldtk_level),
             spawns: SpawnsLayer::from_ldtk_level(ldtk_level),
             bases: BasesLayer::from_ldtk_level(ldtk_level),
-            camera_focus: CameraFocusLayer::from_ldtk_level(ldtk_level),
-        }
-    }
-
-    pub fn to_ground_index(self, position: &Vec3) -> Option<i32> {
-        let grid_size: f32 = self.ground.grid_size as f32;
-        let grid_y_offset: f32 = grid_size * (self.ground.grid_rows as f32);
-        let col: i32 = f32::floor(position.x / (self.ground.grid_size as f32)) as i32;
-        let row: i32 = f32::floor((grid_y_offset - position.y) / (self.ground.grid_size as f32)) as i32;
-        if col < 0
-            || col >= self.ground.grid_cols
-            || row < 0
-            || row >= self.ground.grid_rows {
-            None    
-        } else {
-            Some(row * self.ground.grid_cols + col)
+            camera_focus: CameraFocus::from_ldtk_level(ldtk_level),
+            pathfinding: Pathfinding::from_ldtk_level(ldtk_level),
         }
     }
 }
