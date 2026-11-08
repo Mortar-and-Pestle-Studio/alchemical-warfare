@@ -39,6 +39,7 @@ fn app_plugin(app: &mut App) {
                 primary_window: Some(Window {
                     title: "Alchemical Warfare".to_string(),
                     fit_canvas_to_parent: true,
+                    mode: bevy::window::WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
                     ..default()
                 }),
                 ..default()
