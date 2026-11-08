@@ -1,10 +1,14 @@
 use bevy::prelude::*;
-use bevy_ecs_ldtk::{LdtkWorldBundle, LevelSelection};
+use bevy_ecs_ldtk::{LdtkSettings, LdtkWorldBundle, LevelSelection, IntGridRendering};
 
 use crate::{asset::MapAssets, state::AppState};
 
 pub(super) fn plugin(app: &mut App) {
     app.insert_resource(LevelSelection::index(0))
+        .insert_resource(LdtkSettings {
+            int_grid_rendering: IntGridRendering::Invisible,
+            ..Default::default()
+        })
         .add_systems(OnEnter(AppState::Gameplay), spawn_map);
 }
 
