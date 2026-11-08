@@ -6,6 +6,7 @@
       {
         "id": "8773a6edaf16cdf5",
         "type": "tabs",
+        "dimension": 38.33979328165375,
         "children": [
           {
             "id": "a6dba383366d8548",
@@ -26,6 +27,7 @@
       {
         "id": "02504721b32f8436",
         "type": "tabs",
+        "dimension": 61.66020671834625,
         "children": [
           {
             "id": "24eaa63bff9ca59b",
@@ -216,7 +218,7 @@
       "bases:Create new base": false
     }
   },
-  "active": "a6dba383366d8548",
+  "active": "2dcb0cf2a4d0bbe1",
   "lastOpenFiles": [
     "Pasted image 20261101132423.png",
     "Pasted image 20261101131454.png",
