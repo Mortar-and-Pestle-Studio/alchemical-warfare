@@ -61,9 +61,12 @@ fn app_plugin(app: &mut App) {
         potion::plugin,
         projectile::plugin,
         spawner::plugin,
-        state::plugin,
-    ))
-    .add_plugins((tower::plugin, level::plugin, MeshPickingPlugin, LdtkPlugin))
+        state::plugin,))
+    .add_plugins((
+        tower::plugin,
+        level::plugin,
+        MeshPickingPlugin,
+        LdtkPlugin,))
     .init_resource::<LevelManager>();
 
     #[cfg(debug_assertions)]

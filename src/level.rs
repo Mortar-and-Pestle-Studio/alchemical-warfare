@@ -13,22 +13,74 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (on_level_load).run_if(in_state(AppState::Gameplay)));
 }
 
-pub enum CollisionKind {
-    Wall,
-    Ground,
+pub enum GroundKind {
+    All,
+    PlayerOnly,
+    EnemyOnly,
 }
 
-pub struct CollisionLayer {
+pub struct GroundLayer {
     grid_cols: i32,
     grid_rows: i32,
     grid_size: i32,
-    tiles: Vec<Option<CollisionKind>>
+    tiles: Vec<Option<GroundKind>>
+}
+
+pub enum WallKind {
+    All,
+    PlayerOnly,
+    EnemyOnly,
+}
+
+pub struct WallLayer {
+    grid_cols: i32,
+    grid_rows: i32,
+    grid_size: i32,
+    tiles: Vec<Option<WallKind>>
+}
+
+pub enum SpawnsKind {
+    Enemy,
+}
+
+pub struct SpawnsLayer {
+    grid_cols: i32,
+    grid_rows: i32,
+    grid_size: i32,
+    tiles: Vec<Option<SpawnsKind>>
+}
+
+pub enum BaseKind {
+    Standard,
+}
+
+pub struct BasesLayer {
+    grid_cols: i32,
+    grid_rows: i32,
+    grid_size: i32,
+    tiles: Vec<Option<BaseKind>>
+}
+
+pub enum CameraFocus {
+    Min,
+    Max,
+}
+
+pub struct CameraFocusLayer {
+    grid_cols: i32,
+    grid_rows: i32,
+    grid_size: i32,
+    tiles: Vec<Option<CameraFocus>>
 }
 
 pub struct Level {
     res_x: i32,
     res_y: i32,
-    collision: CollisionLayer
+    ground: GroundLayer,
+    wall: WallLayer,
+    spawns: SpawnsLayer,
+    bases: BasesLayer,
+    camera_focus: CameraFocusLayer,
 }
 
 #[derive(Default, Resource)]
@@ -36,7 +88,7 @@ pub struct LevelManager {
     level: Option<Level>
 }
 
-impl CollisionLayer {
+impl GroundLayer {
     #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
     pub fn new(ldtk_layer: &LayerInstance) -> Self {
         // true-positive: correct layer
@@ -52,8 +104,9 @@ impl CollisionLayer {
                 .iter()
                 .map(|t| match t {
                     // 0 => None,
-                    1 => Some(CollisionKind::Wall),
-                    2 => Some(CollisionKind::Ground),
+                    1 => Some(GroundKind::All),
+                    2 => Some(GroundKind::PlayerOnly),
+                    3 => Some(GroundKind::EnemyOnly),
                     _ => None,
                 })
                 .collect(),
@@ -62,13 +115,164 @@ impl CollisionLayer {
     }
 
     pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
-        CollisionLayer::new(
+        GroundLayer::new(
             ldtk_level
                 .layer_instances
                 .as_ref()
                 .unwrap()
                 .iter()
-                .find(|level| level.identifier == "Collision")
+                .find(|level| level.identifier == "Ground")
+                .unwrap()
+        )
+    }
+}
+
+impl WallLayer {
+    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
+    pub fn new(ldtk_layer: &LayerInstance) -> Self {
+        // true-positive: correct layer
+        // false-positive: incorrect layer that also utilizes a IntMap
+        // true-negative: incorrect layer
+        debug_assert_eq!(ldtk_layer.c_hei * ldtk_layer.c_wid, ldtk_layer.int_grid_csv.len() as i32);
+        Self {
+            grid_cols: ldtk_layer.c_wid,
+            grid_rows: ldtk_layer.c_hei,
+            grid_size: ldtk_layer.grid_size,
+            tiles: ldtk_layer
+                .int_grid_csv
+                .iter()
+                .map(|t| match t {
+                    // 0 => None,
+                    1 => Some(WallKind::All),
+                    2 => Some(WallKind::PlayerOnly),
+                    3 => Some(WallKind::EnemyOnly),
+                    _ => None,
+                })
+                .collect(),
+        }
+        
+    }
+
+    pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
+        WallLayer::new(
+            ldtk_level
+                .layer_instances
+                .as_ref()
+                .unwrap()
+                .iter()
+                .find(|level| level.identifier == "Walls")
+                .unwrap()
+        )
+    }
+}
+
+impl SpawnsLayer {
+    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
+    pub fn new(ldtk_layer: &LayerInstance) -> Self {
+        // true-positive: correct layer
+        // false-positive: incorrect layer that also utilizes a IntMap
+        // true-negative: incorrect layer
+        debug_assert_eq!(ldtk_layer.c_hei * ldtk_layer.c_wid, ldtk_layer.int_grid_csv.len() as i32);
+        Self {
+            grid_cols: ldtk_layer.c_wid,
+            grid_rows: ldtk_layer.c_hei,
+            grid_size: ldtk_layer.grid_size,
+            tiles: ldtk_layer
+                .int_grid_csv
+                .iter()
+                .map(|t| match t {
+                    // 0 => None,
+                    1 => Some(SpawnsKind::Enemy),
+                    _ => None,
+                })
+                .collect(),
+        }
+        
+    }
+
+    pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
+        SpawnsLayer::new(
+            ldtk_level
+                .layer_instances
+                .as_ref()
+                .unwrap()
+                .iter()
+                .find(|level| level.identifier == "Spawns")
+                .unwrap()
+        )
+    }
+}
+
+impl BasesLayer {
+    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
+    pub fn new(ldtk_layer: &LayerInstance) -> Self {
+        // true-positive: correct layer
+        // false-positive: incorrect layer that also utilizes a IntMap
+        // true-negative: incorrect layer
+        debug_assert_eq!(ldtk_layer.c_hei * ldtk_layer.c_wid, ldtk_layer.int_grid_csv.len() as i32);
+        Self {
+            grid_cols: ldtk_layer.c_wid,
+            grid_rows: ldtk_layer.c_hei,
+            grid_size: ldtk_layer.grid_size,
+            tiles: ldtk_layer
+                .int_grid_csv
+                .iter()
+                .map(|t| match t {
+                    // 0 => None,
+                    1 => Some(BaseKind::Standard),
+                    _ => None,
+                })
+                .collect(),
+        }
+        
+    }
+
+    pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
+        BasesLayer::new(
+            ldtk_level
+                .layer_instances
+                .as_ref()
+                .unwrap()
+                .iter()
+                .find(|level| level.identifier == "Bases")
+                .unwrap()
+        )
+    }
+}
+
+impl CameraFocusLayer {
+    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
+    pub fn new(ldtk_layer: &LayerInstance) -> Self {
+        // true-positive: correct layer
+        // false-positive: incorrect layer that also utilizes a IntMap
+        // true-negative: incorrect layer
+        debug_assert_eq!(ldtk_layer.c_hei * ldtk_layer.c_wid, ldtk_layer.int_grid_csv.len() as i32);
+        Self {
+            grid_cols: ldtk_layer.c_wid,
+            grid_rows: ldtk_layer.c_hei,
+            grid_size: ldtk_layer.grid_size,
+            tiles: ldtk_layer
+                .int_grid_csv
+                .iter()
+                .map(|t| match t {
+                    // 0 => None,
+                    1 => Some(CameraFocus::Min),
+                    2 => Some(CameraFocus::Max),
+                    _ => None,
+                })
+                .collect(),
+        }
+        
+    }
+
+    pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
+        CameraFocusLayer::new(
+            ldtk_level
+                .layer_instances
+                .as_ref()
+                .unwrap()
+                .iter()
+                .find(|level| level.identifier == "CameraFocus")
                 .unwrap()
         )
     }
@@ -79,22 +283,26 @@ impl Level {
         Self {
             res_x: ldtk_level.px_wid,
             res_y: ldtk_level.px_hei,
-            collision: CollisionLayer::from_ldtk_level(ldtk_level),
+            ground: GroundLayer::from_ldtk_level(ldtk_level),
+            wall: WallLayer::from_ldtk_level(ldtk_level),
+            spawns: SpawnsLayer::from_ldtk_level(ldtk_level),
+            bases: BasesLayer::from_ldtk_level(ldtk_level),
+            camera_focus: CameraFocusLayer::from_ldtk_level(ldtk_level),
         }
     }
 
-    pub fn to_collision_index(self, position: &Vec3) -> Option<i32> {
-        let grid_size: f32 = self.collision.grid_size as f32;
-        let grid_y_offset: f32 = grid_size * (self.collision.grid_rows as f32);
-        let col: i32 = f32::floor(position.x / (self.collision.grid_size as f32)) as i32;
-        let row: i32 = f32::floor((grid_y_offset - position.y) / (self.collision.grid_size as f32)) as i32;
+    pub fn to_ground_index(self, position: &Vec3) -> Option<i32> {
+        let grid_size: f32 = self.ground.grid_size as f32;
+        let grid_y_offset: f32 = grid_size * (self.ground.grid_rows as f32);
+        let col: i32 = f32::floor(position.x / (self.ground.grid_size as f32)) as i32;
+        let row: i32 = f32::floor((grid_y_offset - position.y) / (self.ground.grid_size as f32)) as i32;
         if col < 0
-            || col >= self.collision.grid_cols
+            || col >= self.ground.grid_cols
             || row < 0
-            || row >= self.collision.grid_rows {
+            || row >= self.ground.grid_rows {
             None    
         } else {
-            Some(row * self.collision.grid_cols + col)
+            Some(row * self.ground.grid_cols + col)
         }
     }
 }
