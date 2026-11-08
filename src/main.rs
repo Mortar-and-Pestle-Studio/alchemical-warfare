@@ -8,6 +8,7 @@ mod enemy;
 mod game;
 mod health;
 mod input;
+mod level;
 mod map;
 mod menu;
 mod objective;
@@ -59,8 +60,12 @@ fn app_plugin(app: &mut App) {
         spawner::plugin,
         state::plugin,
     ))
-    .add_plugins(tower::plugin)
-    .add_plugins(LdtkPlugin);
+    .add_plugins((
+        tower::plugin,
+        level::plugin,
+        LdtkPlugin,
+    ))
+    .add_plugins();
 
     #[cfg(debug_assertions)]
     app.add_plugins(dev::plugin);
