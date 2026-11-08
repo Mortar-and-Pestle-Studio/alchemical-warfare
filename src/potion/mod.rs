@@ -94,6 +94,10 @@ impl Potion {
     pub fn effects_mut(&mut self) -> impl Iterator<Item = &mut PotionEffect> {
         self.effects.iter_mut()
     }
+
+    pub fn aoe_radius(&self) -> f32 {
+        self.aoe_radius
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -43,8 +43,6 @@ pub(super) fn gameplay_dev_menu(
 
         time.set_relative_speed(time_mult);
 
-        // let potion =
-
         if let Some(selected_tower) = selected.get()
             && let Ok(mut tower) = towers.get_mut(selected_tower)
         {
