@@ -41,7 +41,7 @@ impl Health {
 #[derive(Component, Clone, Debug, Default)]
 pub struct Dead;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Damage {
     amount: u32,
     kind: DamageKind,
@@ -55,9 +55,17 @@ impl Damage {
     pub fn kind(&self) -> DamageKind {
         self.kind
     }
+
+    pub fn kind_mut(&mut self) -> &mut DamageKind {
+        &mut self.kind
+    }
+
+    pub fn amount_mut(&mut self) -> &mut u32 {
+        &mut self.amount
+    }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DamageKind {
     Physical,
     Fire,

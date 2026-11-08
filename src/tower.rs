@@ -11,11 +11,13 @@ use crate::{
 
 pub(super) fn plugin(app: &mut App) {
     app.add_message::<TryPlaceTower>()
+        .add_message::<SetPotion>()
         .init_resource::<SelectedTower>()
         .add_systems(OnEnter(AppState::Gameplay), spawn_tower)
         .add_systems(
             Update,
-            (try_place_tower, attack_enemies).run_if(in_state(PauseState::Running)),
+            (try_place_tower, set_tower_potion, attack_enemies)
+                .run_if(in_state(PauseState::Running)),
         );
 }
 
@@ -36,6 +38,12 @@ pub struct Tower {
 
 #[derive(Message)]
 pub struct TryPlaceTower;
+
+#[derive(Message)]
+pub struct SetPotion {
+    pub tower: Entity,
+    pub potion: Potion,
+}
 
 fn spawn_tower(mut commands: Commands) {
     commands.spawn_scene(tower_scene(Vec2::new(128.0, 128.0)));
@@ -110,5 +118,13 @@ fn try_place_tower(
 ) {
     for _try_place_tower in try_place_tower.read() {
         commands.spawn_scene(tower_scene(cursor_world_pos.get()));
+    }
+}
+
+fn set_tower_potion(mut set_potion: MessageReader<SetPotion>, mut towers: Query<&mut Tower>) {
+    for set_potion in set_potion.read() {
+        if let Ok(mut tower) = towers.get_mut(set_potion.tower) {
+            tower.potion = Some(set_potion.potion.clone());
+        }
     }
 }

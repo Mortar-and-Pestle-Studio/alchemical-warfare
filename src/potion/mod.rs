@@ -86,16 +86,30 @@ impl Potion {
 
         1.0 / self.effects.len() as f32
     }
+
+    pub fn effects(&self) -> impl Iterator<Item = &PotionEffect> {
+        self.effects.iter()
+    }
+
+    pub fn effects_mut(&mut self) -> impl Iterator<Item = &mut PotionEffect> {
+        self.effects.iter_mut()
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PotionEffect {
     level: NonZeroU8,
     strength: f32,
     effect: Effect,
 }
 
-#[derive(Debug, Clone)]
+impl PotionEffect {
+    pub fn effect_mut(&mut self) -> &mut Effect {
+        &mut self.effect
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Effect {
     // TODO: how to handle multiple potentially overlapping/stacking effects applied to enemies
     Damage(Damage),
