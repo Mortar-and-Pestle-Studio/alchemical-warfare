@@ -22,6 +22,8 @@ mod wave;
 use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_ecs_ldtk::prelude::*;
 
+use crate::level::LevelManager;
+
 fn main() -> AppExit {
     App::new().add_plugins(app_plugin).run()
 }
@@ -65,7 +67,7 @@ fn app_plugin(app: &mut App) {
         level::plugin,
         LdtkPlugin,
     ))
-    .add_plugins();
+    .init_resource::<LevelManager>();
 
     #[cfg(debug_assertions)]
     app.add_plugins(dev::plugin);
