@@ -4,8 +4,9 @@ use bevy_egui::{EguiContexts, egui};
 use crate::{
     enemy::Enemy,
     game::{Game, GameState, StartNextWave},
-    health::Health,
+    health::{Damage, Health},
     objective::Objective,
+    potion::Effect,
     state::AppState,
     tower::{SelectedTower, Tower},
 };
@@ -51,13 +52,58 @@ pub(super) fn gameplay_menu(
         }
 
         if let Some(selected_tower) = selected.get()
-            && let Ok(_tower) = towers.get(selected_tower)
+            && let Ok(tower) = towers.get(selected_tower)
         {
+            ui.add_space(16.0);
+
             ui.label("Tower selected");
+
+            ui.add_space(8.0);
+
+            if let Some(potion) = tower.potion() {
+                ui.label("Potion Effects");
+
+                for potion_effect in potion.effects() {
+                    ui.label(format!("Level: {}", potion_effect.level()));
+                    ui.label(format!("Strength: {}", potion_effect.strength()));
+
+                    match potion_effect.effect() {
+                        Effect::Damage(damage) => {
+                            ui.label("Damage");
+
+                            damage_ui(ui, damage);
+                        }
+                        Effect::Dot {
+                            damage,
+                            tick_count,
+                            interval,
+                        } => {
+                            ui.label("Damage Over Time");
+
+                            damage_ui(ui, damage);
+
+                            ui.label(format!("Tick Count: {tick_count}"));
+                            ui.label(format!("Interval: {interval}"));
+                        }
+                        Effect::Slow { mult, duration } => {
+                            ui.label("Slow");
+
+                            ui.label(format!("Multiplier: {mult}"));
+                            ui.label(format!("Duration: {duration}"));
+                        }
+                        Effect::Stun { duration } => todo!(),
+                    }
+                }
+            }
         }
     });
 
     Ok(())
+}
+
+fn damage_ui(ui: &mut egui::Ui, damage: &Damage) {
+    ui.label(format!("Damage: {}", damage.amount()));
+    ui.label(format!("Damage Kind: {:?}", damage.kind()));
 }
 
 pub(super) fn game_won(

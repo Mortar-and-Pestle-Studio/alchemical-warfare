@@ -111,6 +111,18 @@ impl PotionEffect {
     pub fn effect_mut(&mut self) -> &mut Effect {
         &mut self.effect
     }
+
+    pub fn level(&self) -> std::num::NonZero<u8> {
+        self.level
+    }
+
+    pub fn strength(&self) -> f32 {
+        self.strength
+    }
+
+    pub fn effect(&self) -> &Effect {
+        &self.effect
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

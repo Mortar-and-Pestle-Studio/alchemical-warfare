@@ -63,6 +63,10 @@ impl Damage {
     pub fn amount_mut(&mut self) -> &mut u32 {
         &mut self.amount
     }
+
+    pub fn amount(&self) -> u32 {
+        self.amount
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

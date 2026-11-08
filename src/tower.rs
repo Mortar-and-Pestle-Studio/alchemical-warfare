@@ -36,6 +36,16 @@ pub struct Tower {
     range: f32,
 }
 
+impl Tower {
+    pub fn range(&self) -> f32 {
+        self.range
+    }
+
+    pub fn potion(&self) -> Option<&Potion> {
+        self.potion.as_ref()
+    }
+}
+
 #[derive(Message)]
 pub struct TryPlaceTower;
 
