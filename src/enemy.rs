@@ -4,6 +4,7 @@ use crate::{
     attack::AttackTimer,
     health::{ApplyDamage, Damage, DamageKind, Dead, Health},
     objective::Objective,
+    potion::effect::Chilled,
     state::{AppState, PauseState},
 };
 
@@ -106,15 +107,20 @@ fn enemy_scene(desc: EnemyDesc, pos: Vec2) -> impl Scene {
 }
 
 fn move_to_objective(
-    enemies: Query<(&Enemy, &mut Transform)>,
+    enemies: Query<(&Enemy, &mut Transform, Option<&Chilled>)>,
     obj_transform: Single<&Transform, (With<Objective>, Without<Enemy>)>,
     time: Res<Time>,
 ) {
-    for (enemy, mut enemy_transform) in enemies {
+    for (enemy, mut enemy_transform, chilled) in enemies {
         let direction =
             (obj_transform.translation - enemy_transform.translation).normalize_or_zero();
 
-        enemy_transform.translation += direction * enemy.speed * time.delta_secs();
+        let speed = match chilled {
+            Some(chilled) => enemy.speed * chilled.mult(),
+            None => enemy.speed,
+        };
+
+        enemy_transform.translation += direction * speed * time.delta_secs();
     }
 }
 

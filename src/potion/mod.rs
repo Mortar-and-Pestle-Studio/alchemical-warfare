@@ -1,4 +1,4 @@
-mod effect;
+pub mod effect;
 
 use std::num::NonZeroU8;
 
@@ -7,7 +7,7 @@ use bevy::prelude::*;
 use crate::{
     enemy::Enemy,
     health::{ApplyDamage, Damage, DamageKind},
-    potion::effect::Ignited,
+    potion::effect::{Chilled, Ignited},
     projectile::{Projectile, ProjectileDef, ReachedTarget, Target},
     state::AppState,
 };
@@ -41,6 +41,7 @@ impl Potion {
             pierce: 4,
         }
     }
+
     pub fn fire() -> Self {
         Self {
             effects: vec![PotionEffect {
@@ -50,6 +51,21 @@ impl Potion {
                     damage: Damage::new(1, DamageKind::Fire),
                     tick_count: 4,
                     interval: 0.5,
+                },
+            }],
+            aoe_radius: 32.0,
+            pierce: 4,
+        }
+    }
+
+    pub fn frost() -> Self {
+        Self {
+            effects: vec![PotionEffect {
+                level: NonZeroU8::new(1).unwrap(),
+                strength: 1.0,
+                effect: Effect::Slow {
+                    mult: 0.5,
+                    duration: 2.0,
                 },
             }],
             aoe_radius: 32.0,
@@ -178,7 +194,11 @@ fn potion_projectile_reached_target(
                         }
                         _ => todo!(),
                     },
-                    Effect::Slow { mult, duration } => todo!(),
+                    Effect::Slow { mult, duration } => {
+                        commands
+                            .entity(enemy_entity)
+                            .insert(Chilled::new(*mult, *duration));
+                    }
                     Effect::Stun { duration } => todo!(),
                 }
             }
