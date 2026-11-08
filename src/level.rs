@@ -1,4 +1,3 @@
-use bevy::gizmos::grid;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::LevelEvent::{self, Transformed};
 use bevy_ecs_ldtk::assets::{LdtkProject, LevelMetadataAccessor};

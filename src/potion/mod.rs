@@ -116,7 +116,7 @@ pub enum Effect {
 #[derive(Debug, Clone)]
 pub enum MixPotionsError {}
 
-fn mix_potions(potion_a: Potion, potion_b: Potion) -> Result<Potion, MixPotionsError> {
+fn mix_potions(_potion_a: Potion, _potion_b: Potion) -> Result<Potion, MixPotionsError> {
     todo!()
 }
 
@@ -199,7 +199,7 @@ fn potion_projectile_reached_target(
                             .entity(enemy_entity)
                             .insert(Chilled::new(*mult, *duration));
                     }
-                    Effect::Stun { duration } => todo!(),
+                    Effect::Stun { duration: _ } => todo!(),
                 }
             }
         }

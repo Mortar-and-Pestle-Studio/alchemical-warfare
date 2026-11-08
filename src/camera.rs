@@ -1,12 +1,7 @@
 use bevy::{camera::Projection::Orthographic, prelude::*};
-use bevy_ecs_ldtk::LevelEvent::{self, Transformed};
-use bevy_ecs_ldtk::assets::{LdtkProject, LevelMetadataAccessor};
 
 use crate::level::{Level, LevelManager, OnLevelLoadEvent};
-use crate::{
-    asset::MapAssets,
-    state::AppState,
-};
+use crate::state::AppState;
 
 const CAMERA_ZOOM: f32 = 1.0 / 4.0;
 

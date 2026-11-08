@@ -51,7 +51,7 @@ pub(super) fn gameplay_menu(
         }
 
         if let Some(selected_tower) = selected.get()
-            && let Ok(tower) = towers.get(selected_tower)
+            && let Ok(_tower) = towers.get(selected_tower)
         {
             ui.label("Tower selected");
         }
