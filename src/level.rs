@@ -1,8 +1,10 @@
+use bevy::gizmos::grid;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::LevelEvent::{self, Transformed};
 use bevy_ecs_ldtk::assets::{LdtkProject, LevelMetadataAccessor};
 use bevy_ecs_ldtk::ldtk::LayerInstance;
 use bevy_ecs_ldtk::ldtk::Level as LdtkLevel;
+use bevy_ecs_ldtk::utils::{grid_coords_to_ldtk_grid_coords, grid_coords_to_translation, int_grid_index_to_grid_coords, translation_to_grid_coords};
 
 use crate::{
     asset::MapAssets,
@@ -62,31 +64,31 @@ pub struct BasesLayer {
     tiles: Vec<Option<BaseKind>>
 }
 
+#[derive(PartialEq)]
 pub enum CameraFocus {
     Min,
     Max,
 }
 
 pub struct CameraFocusLayer {
-    grid_cols: i32,
-    grid_rows: i32,
-    grid_size: i32,
-    tiles: Vec<Option<CameraFocus>>
+    pub min: Vec2,
+    pub max: Vec2,
+    pub center: Vec2,
 }
 
 pub struct Level {
-    res_x: i32,
-    res_y: i32,
-    ground: GroundLayer,
-    wall: WallLayer,
-    spawns: SpawnsLayer,
-    bases: BasesLayer,
-    camera_focus: CameraFocusLayer,
+    pub res_x: i32,
+    pub res_y: i32,
+    pub ground: GroundLayer,
+    pub wall: WallLayer,
+    pub spawns: SpawnsLayer,
+    pub bases: BasesLayer,
+    pub camera_focus: CameraFocusLayer,
 }
 
 #[derive(Default, Resource)]
 pub struct LevelManager {
-    level: Option<Level>
+    pub level: Option<Level>
 }
 
 #[derive(Message)]
@@ -245,40 +247,61 @@ impl BasesLayer {
 }
 
 impl CameraFocusLayer {
-    #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
-    pub fn new(ldtk_layer: &LayerInstance) -> Self {
+    pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
+        let ldtk_layer: &LayerInstance = ldtk_level
+            .layer_instances
+            .as_ref()
+            .unwrap()
+            .iter()
+            .find(|level| level.identifier == "CameraFocus")
+            .unwrap();
+
         // true-positive: correct layer
         // false-positive: incorrect layer that also utilizes a IntMap
         // true-negative: incorrect layer
         debug_assert_eq!(ldtk_layer.c_hei * ldtk_layer.c_wid, ldtk_layer.int_grid_csv.len() as i32);
-        Self {
-            grid_cols: ldtk_layer.c_wid,
-            grid_rows: ldtk_layer.c_hei,
-            grid_size: ldtk_layer.grid_size,
-            tiles: ldtk_layer
-                .int_grid_csv
-                .iter()
-                .map(|t| match t {
-                    // 0 => None,
-                    1 => Some(CameraFocus::Min),
-                    2 => Some(CameraFocus::Max),
-                    _ => None,
-                })
-                .collect(),
-        }
-        
-    }
 
-    pub fn from_ldtk_level(ldtk_level: &LdtkLevel) -> Self {
-        CameraFocusLayer::new(
-            ldtk_level
-                .layer_instances
-                .as_ref()
-                .unwrap()
-                .iter()
-                .find(|level| level.identifier == "CameraFocus")
-                .unwrap()
-        )
+        let mut min_index: Option<usize> = None;
+        let mut max_index: Option<usize> = None;
+        for (index, value) in ldtk_layer.int_grid_csv.iter().enumerate() {
+            let value_enum = match value {
+                1 => Some(CameraFocus::Min),
+                2 => Some(CameraFocus::Max),
+                _ => None,
+            };
+            if value_enum == Some(CameraFocus::Min) {
+                if min_index.is_some() {
+                    panic!("Camera min has already been found");
+                } else {
+                    min_index = Some(index);
+                }
+            } else if value_enum == Some(CameraFocus::Max) {
+                if max_index.is_some() {
+                    panic!("Camera max has already been found");
+                } else {
+                    max_index = Some(index);
+                }
+            }
+        }
+
+        let min_index = min_index.unwrap();
+        let max_index = max_index.unwrap();
+        let grid_size = ldtk_layer.grid_size;
+        let half_grid_size: f32 = (grid_size as f32) * 0.5;
+        let cols = ldtk_layer.c_wid;
+        let rows = ldtk_layer.c_hei;
+        let min_adjustment = Vec2::new(-half_grid_size, -half_grid_size);
+        let max_adjustment = Vec2::new(half_grid_size, half_grid_size);
+
+        let min = index_to_position(min_index, grid_size, cols, rows) + min_adjustment;
+        let max = index_to_position(max_index, grid_size, cols, rows) + max_adjustment;
+        let center = min + ((max - min) * 0.5);
+
+        Self {
+            min,
+            max,
+            center,
+        }
     }
 }
 
@@ -330,4 +353,20 @@ fn on_level_load(
             on_level_load_event.write(OnLevelLoadEvent {});
         }
     }
+}
+
+pub fn index_to_position(index: usize, grid_size: i32, cols: i32, rows: i32) -> Vec2 {
+    let grid_size = IVec2::new(grid_size, grid_size);
+    let grid_coords = int_grid_index_to_grid_coords(index, cols as u32, rows as u32).unwrap();
+    grid_coords_to_translation(grid_coords, grid_size)
+}
+
+// Assumes grid is positioned at Vec3::ZERO
+pub fn position_to_index(position: Vec2, grid_size: i32, cols: i32, rows: i32) -> usize {
+    let grid_size = IVec2::new(grid_size, grid_size);
+    let grid_coords = translation_to_grid_coords(position, grid_size);
+    let (col, row) = grid_coords_to_ldtk_grid_coords(grid_coords, rows).into();
+    assert!(col >= 0 && col < cols);
+    assert!(row >= 0 && row < rows);
+    (row * cols + col) as usize
 }
