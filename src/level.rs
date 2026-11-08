@@ -10,7 +10,8 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(Update, (on_level_load).run_if(in_state(AppState::Gameplay)));
+    app.add_systems(Update, (on_level_load).run_if(in_state(AppState::Gameplay)))
+        .add_message::<OnLevelLoadEvent>();
 }
 
 pub enum GroundKind {
@@ -87,6 +88,9 @@ pub struct Level {
 pub struct LevelManager {
     level: Option<Level>
 }
+
+#[derive(Message)]
+pub struct OnLevelLoadEvent {}
 
 impl GroundLayer {
     #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
@@ -310,6 +314,7 @@ impl Level {
 #[allow(clippy::cast_precision_loss)]
 fn on_level_load(
     mut level_events: MessageReader<LevelEvent>,
+    mut on_level_load_event: MessageWriter<OnLevelLoadEvent>,
     mut level_manager: ResMut<LevelManager>,
     map_assets: Res<MapAssets>,
     project_data: Res<Assets<LdtkProject>>
@@ -319,7 +324,10 @@ fn on_level_load(
             && let Some(project) = project_data.get(&map_assets.test)
             && let Some(ldtk_level) = project.get_raw_level_by_iid(level_iid.get()) {
 
+            // Parse LDtk level data
             level_manager.level = Some(Level::new(ldtk_level));
+            // Notify listeners level has been loaded
+            on_level_load_event.write(OnLevelLoadEvent {});
         }
     }
 }
